@@ -6,6 +6,7 @@ function App() {
         e.preventDefault();
     });
 
+    //메뉴추가되는 함수
     const addMenuName = () => {
         //사용자 입력값이 빈값일 때에
         if($('#espresso-menu-name').value === ''){
@@ -13,7 +14,7 @@ function App() {
             //뒷부분 실행되지 않기 위해 return 
             return;
         }
-        const $menuName = $('#espresso-menu-name').value;
+        const menuName = $('#espresso-menu-name').value;
         const menuItemTemplate = (menuName) => {
             return `
             <li class="menu-list-item d-flex items-center py-2">
@@ -34,7 +35,7 @@ function App() {
             `;
         };
         $('#espresso-menu-list').insertAdjacentHTML(
-            "beforeend",menuItemTemplate($menuName)
+            "beforeend",menuItemTemplate(menuName)
         );
         //메뉴의 개수 세기 
         const menuCount = $('#espresso-menu-list').querySelectorAll("li").length;
@@ -54,16 +55,21 @@ function App() {
 
     // 메뉴의 입력 
     $('#espresso-menu-name').addEventListener('keypress', (e) => {
-        if(e.key !== 'Enter'){
-            return;
-        }
         if(e.key === 'Enter'){
             addMenuName();
         };
-        
-    
     });
 
+    //menu 수정 
+    $("#espresso-menu-list").addEventListener("click", (e) => {
+        if (e.target.classList.contains('menu-edit-button')) {
+            const $whatName = e.target.closest("li").querySelector('.menu-name');
+            const updateName = prompt("수정할 메뉴이름을 입력해주세요", $whatName.innerText);
+
+            $whatName.innerText = `${updateName}`;
+        }
+    })
+    
 }
 
 App();
