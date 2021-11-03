@@ -54,9 +54,15 @@ umedy의 블랙커피 vanilla JS lv1 강의 내용을 바탕으로 진행
 
 ### 로컬스토리지에서 데이터 읽고 쓰기
 
-[ ] localStoarge에 데이터 저장한다
+[X] localStoarge에 데이터 저장한다
 
-[ ] localStoarge에 저장된 데이터를 읽어서 새로고침해도 메뉴가 보이도록 한다 
+[X] 메뉴 추가시
+
+[X] 메뉴 수정시
+
+[X] 메뉴 삭제시
+
+[X] localStoarge에 저장된 데이터를 읽어서 새로고침해도 메뉴가 보이도록 한다 
 
 
 ### 카테고리별 메뉴판 관리
@@ -84,3 +90,10 @@ umedy의 블랙커피 vanilla JS lv1 강의 내용을 바탕으로 진행
 [ ] 품절 메뉴의 경우 상태값이 페이지에 그려진다 
 
 [ ] 클릭 이벤트로 가장 가까운 li tag에 sold-out class를 추가한다 
+
+
+<hr>
+
+- 저장방법: localStoarge.setItem("menu", "espresso")
+
+- 가져오는 방법 : localStorage.getItem("menu")

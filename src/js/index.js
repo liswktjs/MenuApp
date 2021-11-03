@@ -1,19 +1,32 @@
 const $ = (selector) => document.querySelector(selector);
 
+//로컬스토리지 함수 
+const store = {
+    setLocalStorage(menu){
+        localStorage.setItem("menu",JSON.stringify(menu));
+    },
+    getLocalStoarge(){
+        return JSON.parse(localStorage.getItem("menu"));
+    },
+};
+
 function App() {
-    //메뉴추가되는 함수
-    const addMenuName = () => {
-        //사용자 입력값이 빈값일 때에
-        if($('#espresso-menu-name').value === ''){
-            alert('값을 입력해 주세요');
-            //뒷부분 실행되지 않기 위해 return 
-            return;
+    // 상태관리가 필요로 하는 것 - 메뉴명
+    this.menuObject = []; 
+    // 처음 시작할때에 로컬 스토리지에서 값을 불러와서 그리기 
+    this.init = () => {
+        if (store.getLocalStoarge().length >= 1){
+            this.menuObject = store.getLocalStoarge();
+            console.log(this.menuObject);
         }
-        const menuName = $('#espresso-menu-name').value;
-        const menuItemTemplate = (menuName) => {
+        render();
+    };
+    //template을 그려주는 함수
+    const render = () => {
+        const template = this.menuObject.map((item, index) => {
             return `
-            <li class="menu-list-item d-flex items-center py-2">
-                <span class="w-100 pl-2 menu-name">${menuName}</span>
+            <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
+                <span class="w-100 pl-2 menu-name">${item.name}</span>
                 <button
                 type="button"
                 class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
@@ -28,11 +41,25 @@ function App() {
                 </button>
             </li>
             `;
-        };
-        $('#espresso-menu-list').insertAdjacentHTML(
-            "beforeend",menuItemTemplate(menuName)
-        );
+        }).join("");
+        $('#espresso-menu-list').innerHTML = template;
         countMenu();
+    }
+
+    //메뉴추가되는 함수
+    const addMenuName = () => {
+        //사용자 입력값이 빈값일 때에
+        if($('#espresso-menu-name').value === ''){
+            alert('값을 입력해 주세요');
+            //뒷부분 실행되지 않기 위해 return 
+            return;
+        }
+        const espressoMenuName = $('#espresso-menu-name').value;
+        this.menuObject.push({ name: espressoMenuName });
+        store.setLocalStorage(this.menuObject);
+        
+       render();
+        
     }
     //메뉴의 개수 세기 함수
     const countMenu = () => {
@@ -47,15 +74,20 @@ function App() {
 
     //메뉴 수정하는 함수
     const updateMenuName = (e) =>{
+        const menuId = e.target.closest("li").dataset.menuId;
         const $whatName = e.target.closest("li").querySelector('.menu-name');
-            const updateName = prompt("수정할 메뉴이름을 입력해주세요", $whatName.innerText);
-
-            $whatName.innerText = `${updateName}`;
+        const updateName = prompt("수정할 메뉴이름을 입력해주세요", $whatName.innerText);
+        this.menuObject[menuId].name = updateName;
+        store.setLocalStorage(this.menuObject);
+        $whatName.innerText = updateName;
     }
     
     //메뉴 삭제하기 함수
     const removeMenuName = (e) => {
         if (confirm("삭제하시겠습니까?")) {
+            const menuId = e.target.closest("li").dataset.menuId;
+            this.menuObject.splice(menuId,1);
+            store.setLocalStorage(this.menuObject);
             e.target.closest('li').remove();
         }
         countMenu();
@@ -92,4 +124,5 @@ function App() {
     
 }
 
-App();
+const app = new App();
+app.init();
