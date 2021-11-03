@@ -1,14 +1,5 @@
-const $ = (selector) => document.querySelector(selector);
-
-//로컬스토리지 함수 
-const store = {
-    setLocalStorage(menu){
-        localStorage.setItem("menu",JSON.stringify(menu));
-    },
-    getLocalStoarge(){
-        return JSON.parse(localStorage.getItem("menu"));
-    },
-};
+import {$} from './utils/dom.js';
+import store from './store/index.js';
 
 function App() {
     // 상태관리가 필요로 하는 것 - 메뉴명
@@ -25,6 +16,7 @@ function App() {
             this.menuObject = store.getLocalStoarge();
         }
         render();
+        initEventListeners();
     };
     //현재 어떤 카테고리인지 가리키는 변수 
     this.currentCategory = 'espresso';
@@ -72,19 +64,17 @@ function App() {
         const menuName = $('#menu-name').value;
         this.menuObject[this.currentCategory].push({ name: menuName });
         store.setLocalStorage(this.menuObject);
-        
        render();
+       //input 안에 내용 초기화 
+       $("#menu-name").value = ''; 
         
     }
     //메뉴의 개수 세기 함수
     const countMenu = () => {
         
-        const menuCount = $('#menu-list').querySelectorAll("li").length;
+        const menuCount = this.menuObject[this.currentCategory].length;
 
         $(".menu-count").innerText = `총 ${menuCount}개`;
-
-        //input 안에 내용 초기화 
-        $("#menu-name").value = ''; 
     }
 
     //메뉴 수정하는 함수
@@ -94,7 +84,7 @@ function App() {
         const updateName = prompt("수정할 메뉴이름을 입력해주세요", $whatName.innerText);
         this.menuObject[this.currentCategory][menuId].name = updateName;
         store.setLocalStorage(this.menuObject);
-        $whatName.innerText = updateName;
+        render();
     }
     
     //메뉴 삭제하기 함수
@@ -103,9 +93,9 @@ function App() {
             const menuId = e.target.closest("li").dataset.menuId;
             this.menuObject[this.currentCategory].splice(menuId,1);
             store.setLocalStorage(this.menuObject);
-            e.target.closest('li').remove();
+            render();
         }
-        countMenu();
+        
     }
 
     //메뉴 품절상태로 만드는 함수 
@@ -116,54 +106,55 @@ function App() {
         render();
     }
 
-    //카테고리 클릭시 변경되는 함수 
+    const initEventListeners = () => {
+        //form tag 자동으로 전송되는 것 막기 
+        $('#menu-form').addEventListener("submit", (e) => {
+            e.preventDefault();
+        });
 
-    //form tag 자동으로 전송되는 것 막기 
-    $('#menu-form').addEventListener("submit", (e) => {
-        e.preventDefault();
-    });
+        //확인버튼 클릭시 
+        $('#menu-submit-button').addEventListener("click",addMenuName);
 
-    //확인버튼 클릭시 
-    $('#menu-submit-button').addEventListener("click",addMenuName);
-
-    // 메뉴의 입력 
-    $('#menu-name').addEventListener('keypress', (e) => {
-        if(e.key === 'Enter'){
-            addMenuName();
-        };
-    });
-    //메뉴 수정 삭제 요청을 부모요소에서 받기
-    $("#menu-list").addEventListener("click", (e) => {
+        // 메뉴의 입력 
+        $('#menu-name').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter'){
+                addMenuName();
+            };
+        });
+        //메뉴 수정 삭제 요청을 부모요소에서 받기
+        $("#menu-list").addEventListener("click", (e) => {
         
-        //menu 수정 
-        if (e.target.classList.contains('menu-edit-button')) {
-            updateMenuName(e);
-            return;
-        }
+            //menu 수정 
+            if (e.target.classList.contains('menu-edit-button')) {
+                updateMenuName(e);
+                return;
+            }
 
-        // menu 삭제
-        if(e.target.classList.contains('menu-remove-button')) {
-            removeMenuName(e);
-            return;
-        }
-        //menu 품절 
-        if(e.target.classList.contains('menu-sold-out-button')){
-            soldOutMenu(e);
-            return;
-        }
-    });
+            // menu 삭제
+            if(e.target.classList.contains('menu-remove-button')) {
+                removeMenuName(e);
+                return;
+            }
+            //menu 품절 
+            if(e.target.classList.contains('menu-sold-out-button')){
+                soldOutMenu(e);
+                return;
+            }
+        });
 
-    //카테고리 클릭시 해당 메뉴로 화면 렌더링
-    $("nav").addEventListener("click", (e) => {
-        const isCategoryButton = e.target.classList.contains("cafe-category-name");
-        if(isCategoryButton){
-            const categoryName = e.target.dataset.categoryName;
-            this.currentCategory = categoryName;
-            $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
-            render();
+        //카테고리 클릭시 해당 메뉴로 화면 렌더링
+        $("nav").addEventListener("click", (e) => {
+            const isCategoryButton = e.target.classList.contains("cafe-category-name");
+            if(isCategoryButton){
+                const categoryName = e.target.dataset.categoryName;
+                this.currentCategory = categoryName;
+                $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
+                render();
+            }
+        })
         }
-    })
-}
+    
+    }
 
 //인스턴스 생성 (인스턴스를 생성해야 this를 사용이 가능하다 -> 객체에서 사용하므로)
 const app = new App();
