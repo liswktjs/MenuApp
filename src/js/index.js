@@ -34,8 +34,14 @@ function App() {
         const template = this.menuObject[this.currentCategory]
         .map((item, index) => {
             return `
-            <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
-                <span class="w-100 pl-2 menu-name">${item.name}</span>
+            <li data-menu-id="${index}" class=" menu-list-item d-flex items-center py-2">
+                <span class="${item.soldOut ? "sold-out" : ""} w-100 pl-2 menu-name">${item.name}</span>
+                <button
+                type="button"
+                class="bg-gray-50 text-gray-500 text-sm mr-1 menu-sold-out-button"
+                >
+                품절
+                </button>
                 <button
                 type="button"
                 class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
@@ -102,6 +108,14 @@ function App() {
         countMenu();
     }
 
+    //메뉴 품절상태로 만드는 함수 
+    const soldOutMenu = (e) => {
+        const menuId = e.target.closest("li").dataset.menuId;
+        this.menuObject[this.currentCategory][menuId].soldOut = !this.menuObject[this.currentCategory][menuId].soldOut;
+        store.setLocalStorage(this.menuObject);
+        render();
+    }
+
     //카테고리 클릭시 변경되는 함수 
 
     //form tag 자동으로 전송되는 것 막기 
@@ -118,20 +132,28 @@ function App() {
             addMenuName();
         };
     });
-
     //메뉴 수정 삭제 요청을 부모요소에서 받기
     $("#menu-list").addEventListener("click", (e) => {
         
         //menu 수정 
         if (e.target.classList.contains('menu-edit-button')) {
             updateMenuName(e);
+            return;
         }
 
         // menu 삭제
         if(e.target.classList.contains('menu-remove-button')) {
             removeMenuName(e);
+            return;
+        }
+        //menu 품절 
+        if(e.target.classList.contains('menu-sold-out-button')){
+            soldOutMenu(e);
+            return;
         }
     });
+
+    //카테고리 클릭시 해당 메뉴로 화면 렌더링
     $("nav").addEventListener("click", (e) => {
         const isCategoryButton = e.target.classList.contains("cafe-category-name");
         if(isCategoryButton){
