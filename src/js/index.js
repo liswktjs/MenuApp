@@ -1,5 +1,8 @@
 import {$} from './utils/dom.js';
 import store from './store/index.js';
+import { response } from '../../app.js';
+
+const BASE_URL = "http://localhost:8080/api";
 
 function App() {
     // 상태관리가 필요로 하는 것 - 메뉴명
@@ -62,7 +65,17 @@ function App() {
             return;
         }
         const menuName = $('#menu-name').value;
-        this.menuObject[this.currentCategory].push({ name: menuName });
+
+        fetch(`${BASE_URL}/category/${this.currentCategory}/menu`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({name: menuName}),
+        }).then(response => {
+            console.log(response);
+        })
+        //this.menuObject[this.currentCategory].push({ name: menuName });
         store.setLocalStorage(this.menuObject);
        render();
        //input 안에 내용 초기화 
