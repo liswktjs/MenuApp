@@ -97,3 +97,46 @@ umedy의 블랙커피 vanilla JS lv1 강의 내용을 바탕으로 진행
 - 저장방법: localStoarge.setItem("menu", "espresso")
 
 - 가져오는 방법 : localStorage.getItem("menu")
+
+<hr>
+
+🎐 2021.11.04 
+
+- 오늘의 요구 사항 
+
+### 서버에 요청할 것들 
+
+[ ] 웹 서버를 띄운다 
+
+[ ] 서버에 새로운 메뉴명을 추가 할 수 있도록 요청한다 (POST)
+
+[ ] 서버에서 카테고리 별로 메뉴리스트를 GET으로 얻어온다 
+
+[ ] 메뉴 수정 시 서버에 PUT 요청을 통해서 이름을 수정한다 
+
+[ ] 품절 상태 클릭시 서버에서 PUT을 통해서 toggle을 한다 
+
+[ ] 메뉴 삭제 시 서버에 delete 요청을 통해서 메뉴를 삭제한다 
+
+### 리팩토링 부분 
+
+[ ] localStoarge 부분을 삭제한다 
+
+[ ] fetch 비동기 api 요청을 async await 을 사용하여 구현한다 
+
+### 사용자의 경험 
+
+[ ] API 통신이 실패하는 경우에 사용자가 알 수 있게 alert로 예외처리를 한다
+
+[ ] 중복되는 메뉴는 추가할 수 없다
+
+<hr>
+
+- 웹 서버 띄우는 방법 
+
+1) npm init -y (package.json 설치)
+
+2) app.js에서 서버 관련 코드 입력 
+
+3) 실행시 node app.js 입력 (package.json에서 명령어를 다르게 설정할 수 있다)
+
