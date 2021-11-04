@@ -1,8 +1,7 @@
 import {$} from './utils/dom.js';
 import store from './store/index.js';
-import { response } from '../../app.js';
 
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = "http://localhost:3000/api";
 
 function App() {
     // 상태관리가 필요로 하는 것 - 메뉴명
