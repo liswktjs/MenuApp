@@ -3,6 +3,54 @@ import store from './store/index.js';
 
 const BASE_URL = "http://localhost:3000/api";
 
+const MenuApi = {
+    async getAllMenuByCategory(category) {
+        const response = await fetch(`${BASE_URL}/category/${category}/menu`);
+        return response.json();
+    },
+    async createMenu(category, name){
+        const response = await fetch(`${BASE_URL}/category/${category}/menu`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({name}),
+        });
+        if (!response.ok){
+            console.error("에러가 발생하였습니다");
+        }
+    },
+    async updateMenu(category, name, menuId){
+        const response = await fetch(
+            `${BASE_URL}/category/${category}/menu/${menuId}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({name}),
+            }
+        )
+        if (!response.ok){
+            console.error("에러가 발생하였습니다");
+        }
+        return response.json();
+    },
+    async toggleSoldOutMenu(category, menuId){
+        const response = await fetch(
+            `${BASE_URL}/category/${category}/menu/${menuId}/soldout`,
+            {
+                method: "PUT",
+            }
+        
+        );
+        if(!response.ok){
+            console.error("에러가 발생하였습니다");
+        }
+        
+    }
+};
+
 function App() {
     // 상태관리가 필요로 하는 것 - 메뉴명
     this.menuObject = {
@@ -13,10 +61,10 @@ function App() {
         desert: [],
     }; 
     // 처음 시작할때에 로컬 스토리지에서 값을 불러와서 그리기 
-    this.init = () => {
-        if (store.getLocalStoarge()){
-            this.menuObject = store.getLocalStoarge();
-        }
+    this.init = async () => {
+        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
+            this.currentCategory
+        );
         render();
         initEventListeners();
     };
@@ -28,8 +76,8 @@ function App() {
         const template = this.menuObject[this.currentCategory]
         .map((item, index) => {
             return `
-            <li data-menu-id="${index}" class=" menu-list-item d-flex items-center py-2">
-                <span class="${item.soldOut ? "sold-out" : ""} w-100 pl-2 menu-name">${item.name}</span>
+            <li data-menu-id="${item.id}" class=" menu-list-item d-flex items-center py-2">
+                <span class="${item.isSoldOut ? "sold-out" : ""} w-100 pl-2 menu-name">${item.name}</span>
                 <button
                 type="button"
                 class="bg-gray-50 text-gray-500 text-sm mr-1 menu-sold-out-button"
@@ -56,7 +104,7 @@ function App() {
     }
 
     //메뉴추가되는 함수
-    const addMenuName = () => {
+    const addMenuName = async () => {
         //사용자 입력값이 빈값일 때에
         if($('#menu-name').value === ''){
             alert('값을 입력해 주세요');
@@ -65,22 +113,12 @@ function App() {
         }
         const menuName = $('#menu-name').value;
 
-        fetch(`${BASE_URL}/category/${this.currentCategory}/menu`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({name: menuName}),
-        }).then(response => {
-            console.log(response);
-        })
-        //this.menuObject[this.currentCategory].push({ name: menuName });
-        store.setLocalStorage(this.menuObject);
-       render();
-       //input 안에 내용 초기화 
-       $("#menu-name").value = ''; 
+        await MenuApi.createMenu(this.currentCategory, menuName);
+        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(this.currentCategory);
+        render();
+        $("#menu-name").value = "";
         
-    }
+    };
     //메뉴의 개수 세기 함수
     const countMenu = () => {
         
@@ -90,12 +128,14 @@ function App() {
     }
 
     //메뉴 수정하는 함수
-    const updateMenuName = (e) =>{
+    const updateMenuName = async (e) =>{
         const menuId = e.target.closest("li").dataset.menuId;
         const $whatName = e.target.closest("li").querySelector('.menu-name');
         const updateName = prompt("수정할 메뉴이름을 입력해주세요", $whatName.innerText);
-        this.menuObject[this.currentCategory][menuId].name = updateName;
-        store.setLocalStorage(this.menuObject);
+        await MenuApi.updateMenu(this.currentCategory,updateName,menuId);
+        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
+            this.currentCategory
+        );
         render();
     }
     
@@ -111,10 +151,12 @@ function App() {
     }
 
     //메뉴 품절상태로 만드는 함수 
-    const soldOutMenu = (e) => {
+    const soldOutMenu = async (e) => {
         const menuId = e.target.closest("li").dataset.menuId;
-        this.menuObject[this.currentCategory][menuId].soldOut = !this.menuObject[this.currentCategory][menuId].soldOut;
-        store.setLocalStorage(this.menuObject);
+        await MenuApi.toggleSoldOutMenu(this.currentCategory,menuId);
+        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
+            this.currentCategory
+        );
         render();
     }
 
