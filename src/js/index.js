@@ -48,6 +48,17 @@ const MenuApi = {
             console.error("에러가 발생하였습니다");
         }
         
+    },
+    async deleteMenuName(category, menuId){
+        const response = await fetch(
+            `${BASE_URL}/category/${category}/menu/${menuId}`,
+            {
+                method: 'DELETE',
+            }
+        );
+        if (!response.ok){
+            console.error("에러가 발생했습니다");
+        }
     }
 };
 
@@ -140,11 +151,13 @@ function App() {
     }
     
     //메뉴 삭제하기 함수
-    const removeMenuName = (e) => {
+    const removeMenuName = async (e) => {
         if (confirm("삭제하시겠습니까?")) {
             const menuId = e.target.closest("li").dataset.menuId;
-            this.menuObject[this.currentCategory].splice(menuId,1);
-            store.setLocalStorage(this.menuObject);
+            await MenuApi.deleteMenuName(this.currentCategory, menuId);
+            this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
+                this.currentCategory
+            );
             render();
         }
         
@@ -197,12 +210,14 @@ function App() {
         });
 
         //카테고리 클릭시 해당 메뉴로 화면 렌더링
-        $("nav").addEventListener("click", (e) => {
+        $("nav").addEventListener("click", async (e) => {
             const isCategoryButton = e.target.classList.contains("cafe-category-name");
             if(isCategoryButton){
                 const categoryName = e.target.dataset.categoryName;
                 this.currentCategory = categoryName;
                 $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
+                this.menuObject[this.currentCategory] = 
+                await MenuApi.getAllMenuByCategory(this.currentCategory);
                 render();
             }
         })
