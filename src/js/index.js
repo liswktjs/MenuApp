@@ -1,66 +1,7 @@
 import {$} from './utils/dom.js';
 import store from './store/index.js';
+import MenuApi from './api/index.js';
 
-const BASE_URL = "http://localhost:3000/api";
-
-const MenuApi = {
-    async getAllMenuByCategory(category) {
-        const response = await fetch(`${BASE_URL}/category/${category}/menu`);
-        return response.json();
-    },
-    async createMenu(category, name){
-        const response = await fetch(`${BASE_URL}/category/${category}/menu`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({name}),
-        });
-        if (!response.ok){
-            console.error("에러가 발생하였습니다");
-        }
-    },
-    async updateMenu(category, name, menuId){
-        const response = await fetch(
-            `${BASE_URL}/category/${category}/menu/${menuId}`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({name}),
-            }
-        )
-        if (!response.ok){
-            console.error("에러가 발생하였습니다");
-        }
-        return response.json();
-    },
-    async toggleSoldOutMenu(category, menuId){
-        const response = await fetch(
-            `${BASE_URL}/category/${category}/menu/${menuId}/soldout`,
-            {
-                method: "PUT",
-            }
-        
-        );
-        if(!response.ok){
-            console.error("에러가 발생하였습니다");
-        }
-        
-    },
-    async deleteMenuName(category, menuId){
-        const response = await fetch(
-            `${BASE_URL}/category/${category}/menu/${menuId}`,
-            {
-                method: 'DELETE',
-            }
-        );
-        if (!response.ok){
-            console.error("에러가 발생했습니다");
-        }
-    }
-};
 
 function App() {
     // 상태관리가 필요로 하는 것 - 메뉴명
@@ -83,9 +24,10 @@ function App() {
     this.currentCategory = 'espresso';
 
     //template을 그려주는 함수
-    const render = () => {
+    const render = async () => {      
+        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(this.currentCategory);
         const template = this.menuObject[this.currentCategory]
-        .map((item, index) => {
+        .map((item) => {
             return `
             <li data-menu-id="${item.id}" class=" menu-list-item d-flex items-center py-2">
                 <span class="${item.isSoldOut ? "sold-out" : ""} w-100 pl-2 menu-name">${item.name}</span>
@@ -122,10 +64,14 @@ function App() {
             //뒷부분 실행되지 않기 위해 return 
             return;
         }
+        const duplicateItem = this.menuObject[this.currentCategory].find((menuItem) => menuItem.name === $("#menu-name").value)
+        if (duplicateItem){
+            alert("이미 등록된 메뉴 입니다. 다시 입력해주세요");
+            $("#menu-name").value = "";
+            return;
+        }
         const menuName = $('#menu-name').value;
-
         await MenuApi.createMenu(this.currentCategory, menuName);
-        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(this.currentCategory);
         render();
         $("#menu-name").value = "";
         
@@ -144,9 +90,6 @@ function App() {
         const $whatName = e.target.closest("li").querySelector('.menu-name');
         const updateName = prompt("수정할 메뉴이름을 입력해주세요", $whatName.innerText);
         await MenuApi.updateMenu(this.currentCategory,updateName,menuId);
-        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
-            this.currentCategory
-        );
         render();
     }
     
@@ -155,9 +98,6 @@ function App() {
         if (confirm("삭제하시겠습니까?")) {
             const menuId = e.target.closest("li").dataset.menuId;
             await MenuApi.deleteMenuName(this.currentCategory, menuId);
-            this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
-                this.currentCategory
-            );
             render();
         }
         
@@ -167,9 +107,6 @@ function App() {
     const soldOutMenu = async (e) => {
         const menuId = e.target.closest("li").dataset.menuId;
         await MenuApi.toggleSoldOutMenu(this.currentCategory,menuId);
-        this.menuObject[this.currentCategory] = await MenuApi.getAllMenuByCategory(
-            this.currentCategory
-        );
         render();
     }
 
@@ -209,6 +146,8 @@ function App() {
             }
         });
 
+        
+
         //카테고리 클릭시 해당 메뉴로 화면 렌더링
         $("nav").addEventListener("click", async (e) => {
             const isCategoryButton = e.target.classList.contains("cafe-category-name");
@@ -216,8 +155,6 @@ function App() {
                 const categoryName = e.target.dataset.categoryName;
                 this.currentCategory = categoryName;
                 $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
-                this.menuObject[this.currentCategory] = 
-                await MenuApi.getAllMenuByCategory(this.currentCategory);
                 render();
             }
         })
